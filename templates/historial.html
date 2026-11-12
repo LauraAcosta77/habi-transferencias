@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Historial de {{ cuenta.nombre }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f6f8; margin: 0; padding: 24px; }
+        main { max-width: 850px; margin: auto; background: white; padding: 22px; border-radius: 10px; }
+        h1 { color: #173f35; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { text-align: left; padding: 10px; border-bottom: 1px solid #ddd; }
+        a { color: #176b55; }
+    </style>
+</head>
+<body>
+<main>
+    <h1>Historial de {{ cuenta.nombre }}</h1>
+    <h3>Saldo actual: ${{ "{:,}".format(cuenta.saldo) }}</h3>
+    <p><a href="{{ url_for('inicio') }}">Volver al inicio</a></p>
+    {% if movimientos %}
+    <table>
+        <tr><th>Fecha</th><th>Tipo</th><th>Descripción</th><th>Valor</th></tr>
+        {% for movimiento in movimientos %}
+        <tr>
+            <td>{{ movimiento.fecha }}</td>
+            <td>{{ movimiento.tipo }}</td>
+            <td>{{ movimiento.descripcion }}</td>
+            <td>${{ "{:,}".format(movimiento.valor) }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% else %}
+    <p>Esta cuenta todavía no tiene movimientos.</p>
+    {% endif %}
+</main>
+</body>
+</html>

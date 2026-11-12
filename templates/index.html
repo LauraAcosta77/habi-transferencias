@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Habi - Simulador de cuentas</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f6f8; color: #222; margin: 0; }
+        header { background: #173f35; color: white; padding: 22px; text-align: center; }
+        main { max-width: 1050px; margin: 25px auto; padding: 0 16px; }
+        section { background: white; padding: 20px; margin-bottom: 18px; border-radius: 10px; }
+        h2 { color: #173f35; margin-top: 0; }
+        form { margin: 10px 0; }
+        input, select, button { padding: 9px; margin: 5px 4px 5px 0; }
+        button { background: #176b55; color: white; border: 0; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #104b3c; }
+        .mensaje { background: #e7f3ed; padding: 10px; border-radius: 6px; margin-bottom: 8px; }
+        .cuentas { display: flex; flex-wrap: wrap; gap: 12px; }
+        .cuenta { background: #edf4f1; padding: 12px; border-radius: 8px; min-width: 160px; }
+        .checks label { display: inline-block; margin: 6px 12px 6px 0; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 9px; border-bottom: 1px solid #ddd; text-align: left; }
+        .nota { color: #555; font-size: 0.92em; }
+        a { color: #176b55; }
+    </style>
+</head>
+<body>
+<header>
+    <h1>Simulador de transferencias Habi</h1>
+    <p>Cuentas, movimientos y cobros divididos</p>
+</header>
+
+<main>
+    {% with mensajes = get_flashed_messages() %}
+        {% for mensaje in mensajes %}
+            <div class="mensaje">{{ mensaje }}</div>
+        {% endfor %}
+    {% endwith %}
+
+    <section>
+        <h2>Cuentas</h2>
+        {% if cuentas %}
+            <div class="cuentas">
+                {% for cuenta in cuentas %}
+                    <div class="cuenta">
+                        <strong>{{ cuenta.nombre }}</strong><br>
+                        Saldo: ${{ "{:,}".format(cuenta.saldo) }}<br>
+                        <a href="{{ url_for('historial', cuenta_id=cuenta.id) }}">Ver historial</a>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>Aún no hay cuentas. Crea la primera para comenzar.</p>
+        {% endif %}
+    </section>
+
+    <section>
+        <h2>1. Crear una cuenta</h2>
+        <form action="{{ url_for('crear_cuenta') }}" method="post">
+            <input type="text" name="nombre" placeholder="Nombre de la persona" required>
+            <button type="submit">Crear cuenta</button>
+        </form>
+    </section>
+
+    <section>
+        <h2>2. Agregar saldo</h2>
+        {% if cuentas %}
+        <form action="{{ url_for('recargar') }}" method="post">
+            <select name="cuenta_id" required>
+                <option value="">Selecciona una cuenta</option>
+                {% for cuenta in cuentas %}
+                    <option value="{{ cuenta.id }}">{{ cuenta.nombre }}</option>
+                {% endfor %}
+            </select>
+            <input type="number" name="valor" min="1" step="1" placeholder="Valor en pesos" required>
+            <button type="submit">Agregar saldo</button>
+        </form>
+        {% else %}<p>Crea una cuenta primero.</p>{% endif %}
+    </section>
+
+    <section>
+        <h2>3. Transferir dinero</h2>
+        {% if cuentas|length >= 2 %}
+        <form action="{{ url_for('transferir') }}" method="post">
+            <select name="origen_id" required>
+                <option value="">Desde la cuenta</option>
+                {% for cuenta in cuentas %}<option value="{{ cuenta.id }}">{{ cuenta.nombre }}</option>{% endfor %}
+            </select>
+            <select name="destino_id" required>
+                <option value="">Hacia la cuenta</option>
+                {% for cuenta in cuentas %}<option value="{{ cuenta.id }}">{{ cuenta.nombre }}</option>{% endfor %}
+            </select>
+            <input type="number" name="valor" min="1" step="1" placeholder="Valor en pesos" required>
+            <button type="submit">Transferir</button>
+        </form>
+        {% else %}<p>Necesitas al menos dos cuentas.</p>{% endif %}
+    </section>
+
+    <section>
+        <h2>5. Cobros divididos</h2>
+        <p>Registra una cuenta que una persona ya pagó por fuera del sistema. Se divide entre todos los participantes, incluyendo al pagador. El pagador asume los pesos que sobren al dividir.</p>
+        {% if cuentas|length >= 2 %}
+        <form action="{{ url_for('crear_gasto') }}" method="post">
+            <input type="text" name="concepto" placeholder="Concepto (ej. cena, arriendo)" required>
+            <input type="number" name="total" min="1" step="1" placeholder="Total en pesos" required>
+            <select name="pagador_id" required>
+                <option value="">¿Quién pagó?</option>
+                {% for cuenta in cuentas %}<option value="{{ cuenta.id }}">{{ cuenta.nombre }}</option>{% endfor %}
+            </select>
+            <p><strong>¿Quiénes participaron?</strong> Selecciona a las otras personas. El pagador se incluye automáticamente.</p>
+            <div class="checks">
+                {% for cuenta in cuentas %}
+                    <label><input type="checkbox" name="participantes" value="{{ cuenta.id }}"> {{ cuenta.nombre }}</label>
+                {% endfor %}
+            </div>
+            <button type="submit">Dividir gasto</button>
+        </form>
+        {% else %}<p>Crea al menos dos cuentas para dividir un gasto.</p>{% endif %}
+        <p class="nota">Importante: registrar el gasto no descuenta dinero de la cuenta del pagador, porque esa persona ya pagó el total por fuera. Cuando los demás paguen su parte, el dinero se transfiere desde sus cuentas a la del pagador.</p>
+    </section>
+
+    <section>
+        <h2>Deudas pendientes</h2>
+        {% if deudas %}
+        <table>
+            <tr><th>Persona</th><th>Concepto</th><th>Debe a</th><th>Valor</th><th>Acción</th></tr>
+            {% for deuda in deudas %}
+            <tr>
+                <td>{{ deuda.deudor }}</td>
+                <td>{{ deuda.concepto }}</td>
+                <td>{{ deuda.nombre_pagador }}</td>
+                <td>${{ "{:,}".format(deuda.parte) }}</td>
+                <td>
+                    <form action="{{ url_for('pagar_parte') }}" method="post">
+                        <input type="hidden" name="participante_id" value="{{ deuda.id }}">
+                        <button type="submit">Pagar mi parte</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+        {% else %}<p>No hay cobros pendientes.</p>{% endif %}
+    </section>
+
+    <section>
+        <h2>Movimientos recientes</h2>
+        {% if movimientos %}
+        <table>
+            <tr><th>Cuenta</th><th>Tipo</th><th>Descripción</th><th>Valor</th></tr>
+            {% for movimiento in movimientos %}
+            <tr>
+                <td>{{ movimiento.nombre_cuenta }}</td>
+                <td>{{ movimiento.tipo }}</td>
+                <td>{{ movimiento.descripcion }}</td>
+                <td>${{ "{:,}".format(movimiento.valor) }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+        {% else %}<p>Aún no hay movimientos.</p>{% endif %}
+    </section>
+</main>
+</body>
+</html>
