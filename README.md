@@ -72,7 +72,7 @@ Utilicé ChatGPT como herramienta de apoyo durante diferentes etapas del desarro
 
 Principalmente, la utilicé para orientarme en la estructura del proyecto, resolver dudas sobre Python, conectar el frontend con el backend y entender cómo trabajar con Flask y SQLite. También pedí ayuda con la parte de HTML, ya que todavía no manejo muy bien su sintaxis y estoy fortaleciendo mis conocimientos en esta área. De igual manera, recibí orientación sobre Flask, porque es una herramienta que estoy aprendiendo a utilizar y con la que todavía no tengo mucha experiencia.
 
-La IA me ayudó a entender errores, revisar el código y proponer posibles soluciones. Sin embargo, no me limité a copiar las respuestas, ya que fui revisando las funcionalidades y tomando decisiones sobre lo que quería implementar. Por ejemplo, inicialmente le pedi que me ayudara a estructurar mi idea, en cuanto al orden, y el esquema que me dio traia informacion duplicada que entorpeceria el sistema, por lo que decidí eliminar esa opción para evitar repetir información.
+La IA me ayudó a entender errores, revisar el código y proponer posibles soluciones. Sin embargo, no me limité a copiar las respuestas, ya que fui revisando las funcionalidades y tomando decisiones sobre lo que quería implementar. Por ejemplo, inicialmente le pedi que me ayudara a estructurar mi idea, en cuanto al orden, y el esquema que me dio traia informacion duplicada que entorpecia el sistema. La IA propuso colocar la consulta de saldos como una seccion independiente, pero decidi que esa funcionslidad podia estar en el mismo apartado de cuentas, por lo que decidí eliminar esa opción para evitar repetir información.
 
 ## 8. ¿Qué aprendí?
 
